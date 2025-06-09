@@ -182,7 +182,7 @@
   </div>
 
   <script>
-    // 구글 앱스 스크립트 웹앱 URL
+    // ✅ 구글 앱스 스크립트 웹앱 URL (한 번만 선언)
     const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbzQoq68uBzNG73O0tB_KGIsFYfjvuc9zDQKgyrd3JGl2U1tKX8x6iTZ_FghTV4v--JKgQ/exec';
     
     // 세션 시작 시간과 행동 로그
@@ -205,11 +205,7 @@
       console.log(`행동 기록: ${action}`, value);
     }
 
-    // 페이지 로드시 시작 로그
-    window.onload = function() {
-      logAction('page_loaded');
-    };
-
+    // ✅ 별자리 URL 매핑
     const zodiacUrls = {
       aries: "https://kimjiwoow.github.io/aries/",
       taurus: "https://kimjiwoow.github.io/taurus/",
@@ -225,6 +221,7 @@
       pisces: "https://kimjiwoow.github.io/pisces2/"
     };
 
+    // ✅ 별자리 계산 함수
     function getZodiacSign(month, day) {
       const zodiac = [
         { sign: "capricorn", start: [12, 22], end: [1, 19] },
@@ -261,6 +258,7 @@
       return null;
     }
 
+    // ✅ 날짜 동기화 함수들
     function syncToText() {
       const calendarValue = document.getElementById('birth-calendar').value;
       if (calendarValue) {
@@ -278,28 +276,7 @@
       }
     }
 
-    // 입력 필드에 이벤트 리스너 추가
-    document.addEventListener('DOMContentLoaded', function() {
-      document.getElementById('name').addEventListener('input', function() {
-        if (this.value.trim()) {
-          logAction('name_input', this.value);
-        }
-      });
-      
-      document.getElementById('gender').addEventListener('change', function() {
-        logAction('gender_selected', this.value);
-      });
-      
-      // 생년월일 입력 이벤트 추가
-      document.getElementById('birth-text').addEventListener('input', function() {
-        if (this.value.trim()) {
-          logAction('birth_input', this.value);
-        }
-      });
-    });
-
-    // 데이터 전송 함수
-    const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbzQoq68uBzNG73O0tB_KGIsFYfjvuc9zDQKgyrd3JGl2U1tKX8x6iTZ_FghTV4v--JKgQ/exec';
+    // ✅ 구글 시트 데이터 전송 함수
     async function sendToGoogleSheet(userData) {
         try {
             console.log('📤 구글 시트로 데이터 전송 중...', userData);
@@ -329,6 +306,7 @@
         }
     }
 
+    // ✅ 메인 함수 - 별자리 페이지로 이동
     async function goToZodiacPage() {
       const submitBtn = document.getElementById('submitBtn');
       submitBtn.disabled = true;
@@ -340,6 +318,7 @@
       const birth = document.getElementById("birth-text").value;
       const gender = document.getElementById("gender").value;
 
+      // 입력 검증
       if (!name) {
         alert("이름을 입력해 주세요!");
         submitBtn.disabled = false;
@@ -433,7 +412,31 @@
         }, 500);
       }
     }
-  
+
+    // ✅ 페이지 로드 및 이벤트 리스너 설정
+    window.onload = function() {
+      logAction('page_loaded');
+    };
+
+    // DOM 준비 완료 후 이벤트 리스너 추가
+    document.addEventListener('DOMContentLoaded', function() {
+      document.getElementById('name').addEventListener('input', function() {
+        if (this.value.trim()) {
+          logAction('name_input', this.value);
+        }
+      });
+      
+      document.getElementById('gender').addEventListener('change', function() {
+        logAction('gender_selected', this.value);
+      });
+      
+      document.getElementById('birth-text').addEventListener('input', function() {
+        if (this.value.trim()) {
+          logAction('birth_input', this.value);
+        }
+      });
+    });
+
   </script>
 
 </body>
