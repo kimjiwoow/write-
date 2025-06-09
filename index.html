@@ -298,56 +298,71 @@
     }
   </script>
 <script>
-  async function sendUserDataToSheet() {
-    const endpoint = "https://script.google.com/macros/s/AKfycbzQoq68uBzNG73O0tB_KGIsFYfjvuc9zDQKgyrd3JGl2U1tKX8x6iTZ_FghTV4v--JKgQ/exec";
+// 구글 앱스 스크립트 웹앱 URL (배포 후 받은 URL)
+const WEBAPP_URL = 'https://docs.google.com/spreadsheets/d/1BLzD7TtFnoYy_oRCzWIAki1M8RGijHZjk5aHfbHVE2A/edit?usp=sharing';
 
-    // 예시 데이터 (실제 입력값으로 교체하세요)
-    const data = {
-      sessionId: "session_001",
-      name: "홍길동",
-      birth: "1990-01-01",
-      gender: "남성",
-      zodiac: "염소자리",
-      totalTime: 42,
-      actions: [
-        { time: "2025-06-08 10:00:00", action: "start_input", value: "", timeFromStart: 0 },
-        { time: "2025-06-08 10:00:10", action: "name_input_done", value: "홍길동", timeFromStart: 10 },
-        { time: "2025-06-08 10:00:20", action: "birth_input_done", value: "1990-01-01", timeFromStart: 20 },
-        { time: "2025-06-08 10:00:30", action: "gender_input_done", value: "남성", timeFromStart: 30 },
-        { time: "2025-06-08 10:00:42", action: "result_click", value: "", timeFromStart: 42 }
-      ]
-    };
-
+// 데이터 전송 함수
+async function sendToGoogleSheet(userData) {
     try {
-      const response = await fetch(endpoint, {
-        method: "POST",
-        mode: "cors",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(data)
-      });
-
-      const result = await response.json();
-      if (result.success) {
-        console.log("✅ 전송 성공:", result);
-        alert("데이터가 성공적으로 저장되었습니다!");
-      } else {
-        console.error("❌ 전송 실패:", result);
-        alert("데이터 저장 중 오류가 발생했습니다.");
-      }
+        console.log('데이터 전송 중...', userData);
+        
+        const response = await fetch(WEBAPP_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(userData)
+        });
+        
+        const result = await response.json();
+        console.log('전송 결과:', result);
+        
+        if (result.success) {
+            console.log('✅ 데이터 저장 성공!');
+            return true;
+        } else {
+            console.error('❌ 저장 실패:', result.error);
+            return false;
+        }
+        
     } catch (error) {
-      console.error("❗ 요청 실패:", error);
-      alert("서버와 연결할 수 없습니다.");
+        console.error('전송 오류:', error);
+        return false;
     }
-  }
+}
 
-  // 예시: 버튼 클릭 시 실행
-  document.getElementById("sendButton").addEventListener("click", sendUserDataToSheet);
+// 사용 예시: 폼 데이터를 구글 시트로 전송
+function submitData() {
+    const userData = {
+        sessionId: 'session_' + Date.now(),
+        name: document.getElementById('name').value,
+        birth: document.getElementById('birth').value,
+        gender: document.getElementById('gender').value,
+        zodiac: '물병자리', // 계산된 별자리
+        date: new Date().toLocaleDateString(),
+        time: new Date().toLocaleTimeString(),
+        totalTime: 120, // 소요시간(초)
+        actions: [
+            {
+                action: 'start_input',
+                time: new Date().toLocaleTimeString(),
+                timeFromStart: 0,
+                value: 'started'
+            },
+            {
+                action: 'name_input_done',
+                time: new Date().toLocaleTimeString(),
+                timeFromStart: 30,
+                value: document.getElementById('name').value
+            }
+            // 더 많은 행동 로그...
+        ]
+    };
+    
+    // 구글 시트로 전송
+    sendToGoogleSheet(userData);
+}
 </script>
-
-<!-- 예시 버튼 -->
-<button id="sendButton">데이터 전송</button>
 
 </body>
 </html>
