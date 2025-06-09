@@ -295,7 +295,80 @@
 
       const url = zodiacUrls[sign];
       window.location.href = url;
-    }
+    }function goToZodiacPage() {
+  const name = document.getElementById("name").value.trim();
+  const birth = document.getElementById("birth-text").value;
+  const gender = document.getElementById("gender").value;
+
+  if (!name) {
+    alert("이름을 입력해 주세요!");
+    return;
+  }
+
+  if (!birth) {
+    alert("생년월일을 입력해 주세요!");
+    return;
+  }
+
+  // 날짜 형식 검증
+  const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+  if (!datePattern.test(birth)) {
+    alert("날짜 형식이 올바르지 않습니다. (예: 2000-01-01)");
+    return;
+  }
+
+  if (!gender) {
+    alert("성별을 선택해 주세요!");
+    return;
+  }
+
+  const [year, month, day] = birth.split("-").map(Number);
+  
+  // 날짜 유효성 검사
+  if (year < 1900 || year > 2030 || month < 1 || month > 12 || day < 1 || day > 31) {
+    alert("올바른 날짜를 입력해 주세요!");
+    return;
+  }
+
+  const sign = getZodiacSign(month, day);
+
+  if (!sign) {
+    alert("별자리를 확인할 수 없습니다. 날짜를 다시 확인해 주세요!");
+    return;
+  }
+
+  // 선택된 별자리 정보
+  const zodiac = sign;
+
+  // Google Sheets URL (여기서 URL을 입력)
+  const scriptUrl = "YOUR_GOOGLE_APPS_SCRIPT_URL";
+  
+  // 데이터 객체
+  const data = {
+    name: name,
+    birth: birth,
+    gender: gender,
+    zodiac: zodiac
+  };
+
+  // POST 요청으로 Google Sheets에 데이터 전송
+  fetch(scriptUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  })
+  .then(response => response.text())
+  .then(result => {
+    console.log("Success:", result);
+    window.location.href = zodiacUrls[zodiac];
+  })
+  .catch(error => {
+    console.error("Error:", error);
+  });
+}
+
   </script>
 
 </body>
