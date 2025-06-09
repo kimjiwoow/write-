@@ -298,26 +298,56 @@
     }
   </script>
 <script>
-// 구글 시트 CSV URL (웹에 게시한 URL)
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzQoq68uBzNG73O0tB_KGIsFYfjvuc9zDQKgyrd3JGl2U1tKX8x6iTZ_FghTV4v--JKgQ/exec';
+  async function sendUserDataToSheet() {
+    const endpoint = "https://script.google.com/macros/s/AKfycbzQoq68uBzNG73O0tB_KGIsFYfjvuc9zDQKgyrd3JGl2U1tKX8x6iTZ_FghTV4v--JKgQ/exec";
 
-async function loadSheetData() {
+    // 예시 데이터 (실제 입력값으로 교체하세요)
+    const data = {
+      sessionId: "session_001",
+      name: "홍길동",
+      birth: "1990-01-01",
+      gender: "남성",
+      zodiac: "염소자리",
+      totalTime: 42,
+      actions: [
+        { time: "2025-06-08 10:00:00", action: "start_input", value: "", timeFromStart: 0 },
+        { time: "2025-06-08 10:00:10", action: "name_input_done", value: "홍길동", timeFromStart: 10 },
+        { time: "2025-06-08 10:00:20", action: "birth_input_done", value: "1990-01-01", timeFromStart: 20 },
+        { time: "2025-06-08 10:00:30", action: "gender_input_done", value: "남성", timeFromStart: 30 },
+        { time: "2025-06-08 10:00:42", action: "result_click", value: "", timeFromStart: 42 }
+      ]
+    };
+
     try {
-        const response = await fetch(SHEET_URL);
-        const csvText = await response.text();
-        
-        // CSV 데이터를 배열로 변환
-        const rows = csvText.split('\n').map(row => row.split(','));
-        console.log(rows); // 시트 데이터 확인
-        
-        // 여기서 데이터 활용
-    } catch (error) {
-        console.error('데이터 로드 실패:', error);
-    }
-}
+      const response = await fetch(endpoint, {
+        method: "POST",
+        mode: "cors",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+      });
 
-// 페이지 로드시 실행
-window.onload = loadSheetData;
+      const result = await response.json();
+      if (result.success) {
+        console.log("✅ 전송 성공:", result);
+        alert("데이터가 성공적으로 저장되었습니다!");
+      } else {
+        console.error("❌ 전송 실패:", result);
+        alert("데이터 저장 중 오류가 발생했습니다.");
+      }
+    } catch (error) {
+      console.error("❗ 요청 실패:", error);
+      alert("서버와 연결할 수 없습니다.");
+    }
+  }
+
+  // 예시: 버튼 클릭 시 실행
+  document.getElementById("sendButton").addEventListener("click", sendUserDataToSheet);
 </script>
+
+<!-- 예시 버튼 -->
+<button id="sendButton">데이터 전송</button>
+
 </body>
 </html>
