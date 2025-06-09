@@ -183,7 +183,7 @@
 
   <script>
     // 구글 앱스 스크립트 웹앱 URL
-    const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbzwm-3O2kLUxkbpM8TLmHIi7jT_4wjdfpLpUs_7-joOJlFDBe89qTSjV3nDjhQcDl4/exec';
+    const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbzQoq68uBzNG73O0tB_KGIsFYfjvuc9zDQKgyrd3JGl2U1tKX8x6iTZ_FghTV4v--JKgQ/exec';
     
     // 세션 시작 시간과 행동 로그
     const sessionStartTime = Date.now();
@@ -281,11 +281,20 @@
     // 입력 필드에 이벤트 리스너 추가
     document.addEventListener('DOMContentLoaded', function() {
       document.getElementById('name').addEventListener('input', function() {
-        logAction('name_input', this.value);
+        if (this.value.trim()) {
+          logAction('name_input', this.value);
+        }
       });
       
       document.getElementById('gender').addEventListener('change', function() {
         logAction('gender_selected', this.value);
+      });
+      
+      // 생년월일 입력 이벤트 추가
+      document.getElementById('birth-text').addEventListener('input', function() {
+        if (this.value.trim()) {
+          logAction('birth_input', this.value);
+        }
       });
     });
 
@@ -405,23 +414,25 @@
       
       // 구글 시트로 데이터 전송
       console.log('🚀 구글 시트 전송 시작...');
+      console.log('전송할 데이터:', userData);
+      
       const success = await sendToGoogleSheet(userData);
       
       if (success) {
         console.log('🎉 데이터 전송 완료! 별자리 페이지로 이동합니다.');
+        // 짧은 지연 후 이동 (데이터 저장 완료 대기)
+        setTimeout(() => {
+          window.location.href = zodiacUrls[sign];
+        }, 1000);
       } else {
         console.log('⚠️ 데이터 전송 실패, 하지만 별자리 페이지로 이동합니다.');
+        // 실패해도 페이지는 이동
+        setTimeout(() => {
+          window.location.href = zodiacUrls[sign];
+        }, 500);
       }
-      
-      // 별자리 페이지로 이동
-      const url = zodiacUrls[sign];
-      window.location.href = url;
     }
   </script>
-
-</body>
-</html>
-</script>
 
 </body>
 </html>
