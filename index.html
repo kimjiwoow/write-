@@ -297,6 +297,27 @@
       window.location.href = url;
     }
   </script>
+<script>
+// 구글 시트 CSV URL (웹에 게시한 URL)
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzQoq68uBzNG73O0tB_KGIsFYfjvuc9zDQKgyrd3JGl2U1tKX8x6iTZ_FghTV4v--JKgQ/exec';
 
+async function loadSheetData() {
+    try {
+        const response = await fetch(SHEET_URL);
+        const csvText = await response.text();
+        
+        // CSV 데이터를 배열로 변환
+        const rows = csvText.split('\n').map(row => row.split(','));
+        console.log(rows); // 시트 데이터 확인
+        
+        // 여기서 데이터 활용
+    } catch (error) {
+        console.error('데이터 로드 실패:', error);
+    }
+}
+
+// 페이지 로드시 실행
+window.onload = loadSheetData;
+</script>
 </body>
 </html>
