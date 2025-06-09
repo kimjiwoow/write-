@@ -106,6 +106,11 @@
     .submit-btn:hover {
       opacity: 0.9;
     }
+
+    .submit-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
   </style>
 </head>
 <body>
@@ -173,23 +178,51 @@
       </select>
     </div>
 
-    <button type="button" class="submit-btn" onclick="goToZodiacPage()">결과보기</button>
+    <button type="button" class="submit-btn" onclick="goToZodiacPage()" id="submitBtn">결과보기</button>
   </div>
 
   <script>
+    // 구글 앱스 스크립트 웹앱 URL
+    const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbzQoq68uBzNG73O0tB_KGIsFYfjvuc9zDQKgyrd3JGl2U1tKX8x6iTZ_FghTV4v--JKgQ/exec';
+    
+    // 세션 시작 시간과 행동 로그
+    const sessionStartTime = Date.now();
+    const sessionId = 'session_' + sessionStartTime;
+    const actionLog = [];
+
+    // 행동 로그 기록 함수
+    function logAction(action, value = null) {
+      const currentTime = Date.now();
+      const timeFromStart = Math.round((currentTime - sessionStartTime) / 1000);
+      
+      actionLog.push({
+        action: action,
+        time: new Date().toLocaleTimeString(),
+        timeFromStart: timeFromStart,
+        value: value
+      });
+      
+      console.log(`행동 기록: ${action}`, value);
+    }
+
+    // 페이지 로드시 시작 로그
+    window.onload = function() {
+      logAction('page_loaded');
+    };
+
     const zodiacUrls = {
       aries: "https://kimjiwoow.github.io/aries/",
       taurus: "https://kimjiwoow.github.io/taurus/",
       gemini: "https://kimjiwoow.github.io/gemini/",
-      cancer: "https://kimjiwoow.github.io/crab1/ ",
+      cancer: "https://kimjiwoow.github.io/crab1/",
       leo: "https://kimjiwoow.github.io/leo/",
       virgo: "https://kimjiwoow.github.io/virgo/",
-      libra: " https://kimjiwoow.github.io/libra/ ",
-      scorpio: " https://kimjiwoow.github.io/scrpiop/",
+      libra: "https://kimjiwoow.github.io/libra/",
+      scorpio: "https://kimjiwoow.github.io/scrpiop/",
       sagittarius: "https://kimjiwoow.github.io/sagi/",
       capricorn: "https://kimjiwoow.github.io/capricor/",
-      aquarius: " https://kimjiwoow.github.io/aquarius/",
-      pisces: " https://kimjiwoow.github.io/pisces2/"
+      aquarius: "https://kimjiwoow.github.io/aquarius/",
+      pisces: "https://kimjiwoow.github.io/pisces2/"
     };
 
     function getZodiacSign(month, day) {
@@ -212,16 +245,13 @@
         const [startMonth, startDay] = z.start;
         const [endMonth, endDay] = z.end;
         
-        // 같은 해 내에서 처리되는 별자리
         if (startMonth <= endMonth) {
           if ((month === startMonth && day >= startDay) || 
               (month === endMonth && day <= endDay) ||
               (month > startMonth && month < endMonth)) {
             return z.sign;
           }
-        } 
-        // 연도를 넘나드는 별자리 (염소자리)
-        else {
+        } else {
           if ((month === startMonth && day >= startDay) || 
               (month === endMonth && day <= endDay)) {
             return z.sign;
@@ -235,6 +265,7 @@
       const calendarValue = document.getElementById('birth-calendar').value;
       if (calendarValue) {
         document.getElementById('birth-text').value = calendarValue;
+        logAction('birth_calendar_selected', calendarValue);
       }
     }
 
@@ -243,41 +274,97 @@
       const datePattern = /^\d{4}-\d{2}-\d{2}$/;
       if (datePattern.test(textValue)) {
         document.getElementById('birth-calendar').value = textValue;
+        logAction('birth_text_input', textValue);
       }
     }
 
-    function goToZodiacPage() {
+    // 입력 필드에 이벤트 리스너 추가
+    document.addEventListener('DOMContentLoaded', function() {
+      document.getElementById('name').addEventListener('input', function() {
+        logAction('name_input', this.value);
+      });
+      
+      document.getElementById('gender').addEventListener('change', function() {
+        logAction('gender_selected', this.value);
+      });
+    });
+
+    // 데이터 전송 함수
+    async function sendToGoogleSheet(userData) {
+        try {
+            console.log('📤 구글 시트로 데이터 전송 중...', userData);
+            
+            const response = await fetch(WEBAPP_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(userData)
+            });
+            
+            const result = await response.json();
+            console.log('📋 전송 결과:', result);
+            
+            if (result.success) {
+                console.log('✅ 데이터 저장 성공!', result.spreadsheetUrl);
+                return true;
+            } else {
+                console.error('❌ 저장 실패:', result.error);
+                return false;
+            }
+            
+        } catch (error) {
+            console.error('🚨 전송 오류:', error);
+            return false;
+        }
+    }
+
+    async function goToZodiacPage() {
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = true;
+      submitBtn.textContent = '처리중...';
+      
+      logAction('result_button_clicked');
+      
       const name = document.getElementById("name").value.trim();
       const birth = document.getElementById("birth-text").value;
       const gender = document.getElementById("gender").value;
 
       if (!name) {
         alert("이름을 입력해 주세요!");
+        submitBtn.disabled = false;
+        submitBtn.textContent = '결과보기';
         return;
       }
 
       if (!birth) {
         alert("생년월일을 입력해 주세요!");
+        submitBtn.disabled = false;
+        submitBtn.textContent = '결과보기';
         return;
       }
 
-      // 날짜 형식 검증
       const datePattern = /^\d{4}-\d{2}-\d{2}$/;
       if (!datePattern.test(birth)) {
         alert("날짜 형식이 올바르지 않습니다. (예: 2000-01-01)");
+        submitBtn.disabled = false;
+        submitBtn.textContent = '결과보기';
         return;
       }
 
       if (!gender) {
         alert("성별을 선택해 주세요!");
+        submitBtn.disabled = false;
+        submitBtn.textContent = '결과보기';
         return;
       }
 
       const [year, month, day] = birth.split("-").map(Number);
       
-      // 날짜 유효성 검사
       if (year < 1900 || year > 2030 || month < 1 || month > 12 || day < 1 || day > 31) {
         alert("올바른 날짜를 입력해 주세요!");
+        submitBtn.disabled = false;
+        submitBtn.textContent = '결과보기';
         return;
       }
 
@@ -285,83 +372,55 @@
 
       if (!sign) {
         alert("별자리를 확인할 수 없습니다. 날짜를 다시 확인해 주세요!");
+        submitBtn.disabled = false;
+        submitBtn.textContent = '결과보기';
         return;
       }
 
       if (!zodiacUrls[sign]) {
         alert("아직 연결된 별자리 페이지가 없어요!");
+        submitBtn.disabled = false;
+        submitBtn.textContent = '결과보기';
         return;
       }
 
+      // 최종 로그 기록
+      logAction('form_completed', { name, birth, gender, zodiac: sign });
+      
+      // 전체 소요 시간 계산
+      const totalTime = Math.round((Date.now() - sessionStartTime) / 1000);
+      
+      // 구글 시트로 전송할 데이터 준비
+      const userData = {
+        sessionId: sessionId,
+        name: name,
+        birth: birth,
+        gender: gender,
+        zodiac: sign,
+        date: new Date().toLocaleDateString('ko-KR'),
+        time: new Date().toLocaleTimeString('ko-KR'),
+        totalTime: totalTime,
+        actions: actionLog
+      };
+      
+      // 구글 시트로 데이터 전송
+      console.log('🚀 구글 시트 전송 시작...');
+      const success = await sendToGoogleSheet(userData);
+      
+      if (success) {
+        console.log('🎉 데이터 전송 완료! 별자리 페이지로 이동합니다.');
+      } else {
+        console.log('⚠️ 데이터 전송 실패, 하지만 별자리 페이지로 이동합니다.');
+      }
+      
+      // 별자리 페이지로 이동
       const url = zodiacUrls[sign];
       window.location.href = url;
     }
   </script>
-<script>
-// 구글 앱스 스크립트 웹앱 URL (배포 후 받은 URL)
-const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbzQoq68uBzNG73O0tB_KGIsFYfjvuc9zDQKgyrd3JGl2U1tKX8x6iTZ_FghTV4v--JKgQ/exec';
 
-// 데이터 전송 함수
-async function sendToGoogleSheet(userData) {
-    try {
-        console.log('데이터 전송 중...', userData);
-        
-        const response = await fetch(WEBAPP_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(userData)
-        });
-        
-        const result = await response.json();
-        console.log('전송 결과:', result);
-        
-        if (result.success) {
-            console.log('✅ 데이터 저장 성공!');
-            return true;
-        } else {
-            console.error('❌ 저장 실패:', result.error);
-            return false;
-        }
-        
-    } catch (error) {
-        console.error('전송 오류:', error);
-        return false;
-    }
-}
-
-// 사용 예시: 폼 데이터를 구글 시트로 전송
-function submitData() {
-    const userData = {
-        sessionId: 'session_' + Date.now(),
-        name: document.getElementById('name').value,
-        birth: document.getElementById('birth').value,
-        gender: document.getElementById('gender').value,
-        zodiac: '물병자리', // 계산된 별자리
-        date: new Date().toLocaleDateString(),
-        time: new Date().toLocaleTimeString(),
-        totalTime: 120, // 소요시간(초)
-        actions: [
-            {
-                action: 'start_input',
-                time: new Date().toLocaleTimeString(),
-                timeFromStart: 0,
-                value: 'started'
-            },
-            {
-                action: 'name_input_done',
-                time: new Date().toLocaleTimeString(),
-                timeFromStart: 30,
-                value: document.getElementById('name').value
-            }
-            // 더 많은 행동 로그...
-        ]
-    };
-    
-    // 구글 시트로 전송
-    sendToGoogleSheet(userData);
-}
+</body>
+</html>
 </script>
 
 </body>
