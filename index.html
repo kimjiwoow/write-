@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>별난별이 정보입력</title>
+  <title>별난별이 별 정보작성</title>
   <style>
     body {
       margin: 0;
@@ -202,13 +202,13 @@
       const gender = document.getElementById('gender').value;
 
       if (!name || !birth || !gender) {
-        alert("모든 정보를 입력해 주세요.");
+        alert("빠진내용이 없는지 확인해줘!.");
         return;
       }
 
       const birthPattern = /^\d{4}-\d{2}-\d{2}$/;
       if (!birthPattern.test(birth)) {
-        alert("날짜 형식이 잘못되었습니다. 예: 2000-01-01");
+        alert("날짜 형식을 다시 확인해줘!. 예: 2000-00-00");
         return;
       }
 
@@ -216,7 +216,7 @@
       const zodiac = getZodiacSign(month, day);
 
       if (!zodiac || !zodiacUrls[zodiac]) {
-        alert("별자리를 확인할 수 없습니다.");
+        alert("운명 별 탐색 실패!");
         return;
       }
 
