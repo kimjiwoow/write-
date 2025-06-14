@@ -184,16 +184,25 @@
       const [year, month, day] = birth.split('-').map(Number);
       const zodiac = getZodiacSign(month, day);
 
-      const userData = {
-        sessionId,
-        name,
-        birth,
-        gender,
-        date: new Date().toLocaleDateString('ko-KR'),
-        time: new Date().toLocaleTimeString('ko-KR'),
-        totalTime: Math.round((Date.now() - Number(sessionId.split('_')[1])) / 1000),
-        actions: actionLog
-      };
+const userData = {
+  sessionId,
+  name,
+  birth,
+  gender,
+  date: new Date().toLocaleDateString('ko-KR'),
+  time: new Date().toLocaleTimeString('ko-KR'),
+  totalTime: Math.round((Date.now() - Number(sessionId.split('_')[1])) / 1000),
+  actions: actionLog,
+  value1: 0,
+  value2: 0,
+  value3: 0,
+  value4: 0,
+  value5: 0,
+  value6: actionLog.length // 예시로 하나라도 실제 숫자가 들어가게
+};
+
+      
+      
 
       try {
         await fetch(WEBAPP_URL, {
@@ -212,6 +221,7 @@
         console.error(e);
       }
     }
+    
     function logAction(action, value = null) {
   actionLog.push({
     action,
