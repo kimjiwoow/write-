@@ -53,16 +53,20 @@
       font-size: 0.85rem;
       margin-bottom: 4px;
       color: #333;
+      text-align: left;
       font-weight: 600;
     }
 
     .input-group input,
     .input-group select {
+      appearance: none;
+      -webkit-appearance: none;
       height: 38px;
       padding: 8px 12px;
       font-size: 0.85rem;
       border: 1px solid #ccc;
       border-radius: 6px;
+      outline: none;
       background-color: white;
       color: #222;
     }
@@ -71,7 +75,24 @@
       color: #aaa;
     }
 
+    .input-group select {
+      color: #aaa;
+    }
+
+    .input-group select:valid {
+      color: #222;
+    }
+
+    .input-group small {
+      font-size: 12px;
+      color: #777;
+      margin-top: 4px;
+      text-align: left;
+    }
+
     .submit-btn {
+      display: block;
+      margin-top: 16px;
       background-color: #2d1b69;
       color: white;
       border: none;
@@ -79,6 +100,7 @@
       border-radius: 20px;
       font-size: 14px;
       cursor: pointer;
+      float: right;
     }
 
     .submit-btn:hover {
@@ -95,17 +117,17 @@
 
     <div class="input-group">
       <label for="name">이름 (별명)</label>
-      <input type="text" id="name" placeholder="예: 별난별">
+      <input type="text" id="name" name="name" placeholder="예: 별난별">
     </div>
 
     <div class="input-group">
-      <label for="birth">생년월일 (YYYY-MM-DD)</label>
-      <input type="text" id="birth" placeholder="예: 2000-01-01">
+      <label for="birth">생년월일</label>
+      <input type="text" id="birth" name="birth" placeholder="YYYY-MM-DD">
     </div>
 
     <div class="input-group">
       <label for="gender">성별</label>
-      <select id="gender">
+      <select id="gender" name="gender" required>
         <option value="" disabled selected hidden>선택</option>
         <option value="남성">남성</option>
         <option value="여성">여성</option>
@@ -113,77 +135,55 @@
       </select>
     </div>
 
-    <button class="submit-btn" id="submitBtn" onclick="handleSubmit()">결과보기</button>
+    <button type="button" class="submit-btn" onclick="goToZodiacPage()">결과보기</button>
   </div>
 
   <script>
     const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbyQksOBt6Rg11usuNVaHOLbZ8Oe2Ctn0ZPGHiK_0r1sIX5btX4RRMqb8GMFCTRR4mc0/exec';
-    const sessionId = 'session_' + Date.now();
+    let sessionStartTime = Date.now();
+    let sessionId = 'session_' + sessionStartTime + '_' + Math.floor(Math.random() * 10000);
     const actionLog = [];
 
-    const zodiacUrls = {
-      aries: "https://kimjiwoow.github.io/aries/",
-      taurus: "https://kimjiwoow.github.io/taurus/",
-      gemini: "https://kimjiwoow.github.io/gemini/",
-      cancer: "https://kimjiwoow.github.io/crab1/",
-      leo: "https://kimjiwoow.github.io/leo/",
-      virgo: "https://kimjiwoow.github.io/virgo/",
-      libra: "https://kimjiwoow.github.io/libra/",
-      scorpio: "https://kimjiwoow.github.io/scrpiop/",
-      sagittarius: "https://kimjiwoow.github.io/sagi/",
-      capricorn: "https://kimjiwoow.github.io/capricor/",
-      aquarius: "https://kimjiwoow.github.io/aquarius/",
-      pisces: "https://kimjiwoow.github.io/pisces2/"
-    };
-
-    function getZodiacSign(month, day) {
-      const zodiacs = [
-        { sign: "capricorn", start: [12, 22], end: [1, 19] },
-        { sign: "aquarius", start: [1, 20], end: [2, 18] },
-        { sign: "pisces", start: [2, 19], end: [3, 20] },
-        { sign: "aries", start: [3, 21], end: [4, 19] },
-        { sign: "taurus", start: [4, 20], end: [5, 20] },
-        { sign: "gemini", start: [5, 21], end: [6, 21] },
-        { sign: "cancer", start: [6, 22], end: [7, 22] },
-        { sign: "leo", start: [7, 23], end: [8, 22] },
-        { sign: "virgo", start: [8, 23], end: [9, 22] },
-        { sign: "libra", start: [9, 23], end: [10, 22] },
-        { sign: "scorpio", start: [10, 23], end: [11, 21] },
-        { sign: "sagittarius", start: [11, 22], end: [12, 21] }
-      ];
-
-      for (const z of zodiacs) {
-        const [sm, sd] = z.start;
-        const [em, ed] = z.end;
-
-        if ((sm <= em && ((month === sm && day >= sd) || (month === em && day <= ed) || (month > sm && month < em))) ||
-            (sm > em && ((month === sm && day >= sd) || (month === em && day <= ed) || month > sm || month < em))) {
-          return z.sign;
-        }
-      }
-
-      return null;
+    function logAction(action, value = null) {
+      const currentTime = Date.now();
+      const timeFromStart = Math.round((currentTime - sessionStartTime) / 1000);
+      actionLog.push({ action, time: new Date().toLocaleTimeString(), timeFromStart, value });
     }
 
-    async function handleSubmit() {
-      const name = document.getElementById('name').value.trim();
-      const birth = document.getElementById('birth').value.trim();
-      const gender = document.getElementById('gender').value;
+    async function sendToGoogleSheet(userData) {
+      try {
+        const response = await fetch(WEBAPP_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(userData)
+        });
+        const result = await response.json();
+        return result.success;
+      } catch (error) {
+        console.error('전송 실패:', error);
+        return false;
+      }
+    }
+
+    async function goToZodiacPage() {
+      const name = document.getElementById("name").value.trim();
+      const birth = document.getElementById("birth").value.trim();
+      const gender = document.getElementById("gender").value;
 
       if (!name || !birth || !gender) {
-        alert("모든 정보를 입력해 주세요.");
+        alert("모든 정보를 입력해 주세요!");
         return;
       }
 
-      const birthPattern = /^\d{4}-\d{2}-\d{2}$/;
-      if (!birthPattern.test(birth)) {
-        alert("날짜 형식이 잘못되었습니다. 예: 2000-01-01");
+      const [year, month, day] = birth.split("-").map(Number);
+      if (year < 1900 || year > 2030 || month < 1 || month > 12 || day < 1 || day > 31) {
+        alert("올바른 생년월일을 입력해 주세요!");
         return;
       }
 
-      const [year, month, day] = birth.split('-').map(Number);
-      const zodiac = getZodiacSign(month, day);
+      logAction('form_completed', { name, birth, gender });
 
+      const totalTime = Math.round((Date.now() - sessionStartTime) / 1000);
       const userData = {
         sessionId,
         name,
@@ -191,29 +191,20 @@
         gender,
         date: new Date().toLocaleDateString('ko-KR'),
         time: new Date().toLocaleTimeString('ko-KR'),
-        totalTime: Math.round((Date.now() - Number(sessionId.split('_')[1])) / 1000),
+        totalTime,
         actions: actionLog
       };
 
-      try {
-        await fetch(WEBAPP_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(userData)
-        });
-        if (zodiac && zodiacUrls[zodiac]) {
-          window.location.href = zodiacUrls[zodiac];
-        } else {
-          alert("별자리를 확인할 수 없습니다.");
-        }
-      } catch (e) {
-        alert("전송 중 문제가 발생했습니다.");
-        console.error(e);
-      }
+      await sendToGoogleSheet(userData);
+      alert("전송 완료! 다음 페이지로 이동합니다.");
+      // window.location.href = 'https://kimjiwoow.github.io/다음페이지';
     }
+
+    window.onload = () => logAction('page_loaded');
+    document.getElementById('name').addEventListener('input', e => logAction('name_input', e.target.value));
+    document.getElementById('birth').addEventListener('input', e => logAction('birth_input', e.target.value));
+    document.getElementById('gender').addEventListener('change', e => logAction('gender_selected', e.target.value));
   </script>
 
 </body>
 </html>
-
