@@ -118,6 +118,7 @@
       aquarius: "https://kimjiwoow.github.io/aquarius/",
       pisces: "https://kimjiwoow.github.io/pisces2/"
     };
+
     function getZodiacSign(month, day) {
       const zodiacs = [
         { sign: "capricorn", start: [12, 22], end: [1, 19] },
@@ -143,6 +144,7 @@
       }
       return null;
     }
+
     function logAction(action, value = null) {
       const now = Date.now();
       actionLog.push({
@@ -152,22 +154,48 @@
         timeFromStart: Math.round((now - sessionStart) / 1000)
       });
     }
+
+    // 백그라운드에서 데이터 전송하는 함수
+    function sendDataToSheet(userData) {
+      // fetch를 백그라운드에서 실행 (결과를 기다리지 않음)
+      fetch(WEBAPP_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData)
+      }).catch(error => {
+        // 에러가 발생해도 사용자 경험에 영향을 주지 않도록 조용히 처리
+        console.log('Data sending failed:', error);
+      });
+    }
+
     async function handleSubmit() {
       logAction("result_click");
+      
       const name = document.getElementById('name').value.trim();
       const birth = document.getElementById('birth').value.trim();
       const gender = document.getElementById('gender').value;
+
       if (!name || !birth || !gender) {
         alert("모든 정보를 입력해 주세요.");
         return;
       }
+
       const birthPattern = /^\d{4}-\d{2}-\d{2}$/;
       if (!birthPattern.test(birth)) {
         alert("날짜 형식이 잘못되었습니다. 예: 2000-01-01");
         return;
       }
+
       const [year, month, day] = birth.split('-').map(Number);
       const zodiac = getZodiacSign(month, day);
+
+      if (!zodiac || !zodiacUrls[zodiac]) {
+        alert("별자리를 확인할 수 없습니다.");
+        return;
+      }
+
+      // 사용자 데이터 준비
       const userData = {
         sessionId,
         name,
@@ -179,20 +207,17 @@
         totalTime: Math.round((Date.now() - sessionStart) / 1000),
         actions: actionLog
       };
-      fetch(WEBAPP_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(userData)
-      });
-      if (zodiac && zodiacUrls[zodiac]) {
-        window.location.href = zodiacUrls[zodiac];
-      } else {
-        alert("별자리를 확인할 수 없습니다.");
-      }
+
+      // 백그라운드에서 데이터 전송 (비동기, 결과를 기다리지 않음)
+      sendDataToSheet(userData);
+
+      // 즉시 페이지 이동
+      window.location.href = zodiacUrls[zodiac];
     }
+
     window.addEventListener("load", () => {
       logAction("start_input");
+      
       document.getElementById('name').addEventListener("input", e =>
         logAction("name_input_done", e.target.value)
       );
