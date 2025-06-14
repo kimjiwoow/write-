@@ -104,6 +104,31 @@
     const sessionId = 'session_' + Date.now();
     const actionLog = [];
     const sessionStart = Date.now();
+
+    // 기기 타입 감지 함수
+    function getDeviceType() {
+      const userAgent = navigator.userAgent.toLowerCase();
+      const isMobile = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
+      const isTablet = /ipad|android(?!.*mobile)/i.test(userAgent);
+      
+      if (isTablet) return 'tablet';
+      if (isMobile) return 'mobile';
+      return 'desktop';
+    }
+
+    // 브라우저 정보 감지 함수
+    function getBrowserInfo() {
+      const userAgent = navigator.userAgent;
+      let browser = 'unknown';
+      
+      if (userAgent.includes('Chrome') && !userAgent.includes('Edg')) browser = 'Chrome';
+      else if (userAgent.includes('Safari') && !userAgent.includes('Chrome')) browser = 'Safari';
+      else if (userAgent.includes('Firefox')) browser = 'Firefox';
+      else if (userAgent.includes('Edg')) browser = 'Edge';
+      else if (userAgent.includes('Opera')) browser = 'Opera';
+      
+      return browser;
+    }
     const zodiacUrls = {
       aries: "https://kimjiwoow.github.io/aries/",
       taurus: "https://kimjiwoow.github.io/taurus/",
@@ -202,6 +227,10 @@
         birth,
         gender,
         zodiac,
+        deviceType: getDeviceType(),
+        browser: getBrowserInfo(),
+        screenSize: `${screen.width}x${screen.height}`,
+        userAgent: navigator.userAgent,
         date: new Date().toLocaleDateString('ko-KR'),
         time: new Date().toLocaleTimeString('ko-KR'),
         totalTime: Math.round((Date.now() - sessionStart) / 1000),
