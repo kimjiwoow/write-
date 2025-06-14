@@ -16,13 +16,16 @@
       min-height: 100vh;
       padding-top: 40px;
     }
+
     input, select, button {
       font-family: 'Pretendard', sans-serif;
     }
+
     .character-image {
       width: 180px;
       margin-bottom: 30px;
     }
+
     .form-container {
       background-color: #fff;
       border-radius: 16px;
@@ -31,6 +34,7 @@
       max-width: 400px;
       box-shadow: 0 3px 12px rgba(0, 0, 0, 0.1);
     }
+
     .form-container h2 {
       font-size: 16px;
       font-weight: 800;
@@ -38,17 +42,20 @@
       color: #333;
       text-align: left;
     }
+
     .input-group {
       display: flex;
       flex-direction: column;
       margin-bottom: 16px;
     }
+
     .input-group label {
       font-size: 0.85rem;
       margin-bottom: 4px;
       color: #333;
       font-weight: 600;
     }
+
     .input-group input,
     .input-group select {
       height: 38px;
@@ -59,9 +66,11 @@
       background-color: white;
       color: #222;
     }
+
     .input-group input::placeholder {
       color: #aaa;
     }
+
     .submit-btn {
       background-color: #2d1b69;
       color: white;
@@ -71,6 +80,7 @@
       font-size: 14px;
       cursor: pointer;
     }
+
     .submit-btn:hover {
       opacity: 0.9;
     }
@@ -103,13 +113,14 @@
       </select>
     </div>
 
-    <button class="submit-btn" id="submitBtn" onclick="handleSubmit()">결과보기</button>
+    <button class="submit-btn" id="submitBtn">결과보기</button>
   </div>
 
   <script>
     const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbyQksOBt6Rg11usuNVaHOLbZ8Oe2Ctn0ZPGHiK_0r1sIX5btX4RRMqb8GMFCTRR4mc0/exec';
     const sessionId = 'session_' + Date.now();
     const actionLog = [];
+    const sessionStart = Date.now();
 
     const zodiacUrls = {
       aries: "https://kimjiwoow.github.io/aries/",
@@ -145,6 +156,7 @@
       for (const z of zodiacs) {
         const [sm, sd] = z.start;
         const [em, ed] = z.end;
+
         if ((sm <= em && ((month === sm && day >= sd) || (month === em && day <= ed) || (month > sm && month < em))) ||
             (sm > em && ((month === sm && day >= sd) || (month === em && day <= ed) || month > sm || month < em))) {
           return z.sign;
@@ -155,30 +167,14 @@
     }
 
     function logAction(action, value = null) {
+      const now = Date.now();
       actionLog.push({
         action,
-        time: new Date().toLocaleTimeString(),
+        time: new Date(now).toLocaleTimeString('ko-KR'),
         value: value,
-        timeFromStart: Math.round((Date.now() - Number(sessionId.split('_')[1])) / 1000)
+        timeFromStart: Math.round((now - sessionStart) / 1000)
       });
     }
-
-    window.addEventListener("load", () => {
-      logAction("start_input");
-
-      document.getElementById('name').addEventListener("input", e =>
-        logAction("name_input_done", e.target.value)
-      );
-      document.getElementById('birth').addEventListener("input", e =>
-        logAction("birth_input_done", e.target.value)
-      );
-      document.getElementById('gender').addEventListener("change", e =>
-        logAction("gender_input_done", e.target.value)
-      );
-      document.getElementById('submitBtn').addEventListener("click", () =>
-        logAction("result_click")
-      );
-    });
 
     async function handleSubmit() {
       const name = document.getElementById('name').value.trim();
@@ -207,7 +203,7 @@
         zodiac,
         date: new Date().toLocaleDateString('ko-KR'),
         time: new Date().toLocaleTimeString('ko-KR'),
-        totalTime: Math.round((Date.now() - Number(sessionId.split('_')[1])) / 1000),
+        totalTime: Math.round((Date.now() - sessionStart) / 1000),
         actions: actionLog
       };
 
@@ -229,6 +225,26 @@
         console.error(e);
       }
     }
+
+    // 이벤트 연결
+    window.addEventListener("load", () => {
+      logAction("start_input");
+
+      document.getElementById('name').addEventListener("input", e =>
+        logAction("name_input_done", e.target.value)
+      );
+      document.getElementById('birth').addEventListener("input", e =>
+        logAction("birth_input_done", e.target.value)
+      );
+      document.getElementById('gender').addEventListener("change", e =>
+        logAction("gender_input_done", e.target.value)
+      );
+      document.getElementById('submitBtn').addEventListener("click", () =>
+        logAction("result_click")
+      );
+
+      document.getElementById('submitBtn').addEventListener("click", handleSubmit);
+    });
   </script>
 
 </body>
