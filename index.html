@@ -204,6 +204,23 @@
     document.getElementById('name').addEventListener('input', e => logAction('name_input', e.target.value));
     document.getElementById('birth').addEventListener('input', e => logAction('birth_input', e.target.value));
     document.getElementById('gender').addEventListener('change', e => logAction('gender_selected', e.target.value));
+
+
+    window.onload = () => {
+  logAction('page_loaded');
+
+  document.getElementById('name').addEventListener('input', e => logAction('name_input', e.target.value));
+  document.getElementById('name').addEventListener('blur', () => logAction('name_input_done'));
+
+  document.getElementById('birth-text').addEventListener('input', e => logAction('birth_input', e.target.value));
+  document.getElementById('birth-text').addEventListener('blur', () => logAction('birth_input_done'));
+
+  document.getElementById('gender').addEventListener('change', e => {
+    logAction('gender_selected', e.target.value);
+    logAction('gender_input_done');
+  });
+};
+
   </script>
 
 </body>
