@@ -212,6 +212,30 @@
         console.error(e);
       }
     }
+    function logAction(action, value = null) {
+  actionLog.push({
+    action,
+    time: new Date().toLocaleTimeString(),
+    value: value
+  });
+}
+window.addEventListener("load", () => {
+  logAction("page_loaded");
+
+  document.getElementById('name').addEventListener("input", e =>
+    logAction("name_input", e.target.value)
+  );
+  document.getElementById('birth').addEventListener("input", e =>
+    logAction("birth_input", e.target.value)
+  );
+  document.getElementById('gender').addEventListener("change", e =>
+    logAction("gender_selected", e.target.value)
+  );
+  document.getElementById('submitBtn').addEventListener("click", () =>
+    logAction("result_button_clicked")
+  );
+});
+
   </script>
 
 </body>
