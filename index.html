@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -155,17 +156,17 @@
       try {
         console.log('📤 구글 시트로 데이터 전송 중...', userData);
 
-        await fetch(WEBAPP_URL, {
+        const response = await fetch(WEBAPP_URL, {
           method: 'POST',
-          mode: 'no-cors',
           headers: {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify(userData)
         });
 
-        console.log('✅ 전송 시도 완료 (응답 없음)');
-        return true;
+        const result = await response.json();
+        console.log('✅ 전송 성공:', result);
+        return result.success;
 
       } catch (error) {
         console.error('🚨 전송 실패:', error);
@@ -216,7 +217,6 @@
 
       await sendToGoogleSheet(userData);
 
-      // 페이지 이동 예시 (별자리 분석 결과 페이지 등)
       alert("데이터가 전송되었습니다. 별자리 페이지로 이동합니다.");
       // window.location.href = "https://kimjiwoow.github.io/다음페이지";
     }
